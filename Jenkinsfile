@@ -4,7 +4,7 @@ pipeline {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
         // SonarCloud Configuration
-        SONARQUBE_ENV = 'Sonarcloud'
+        SONARQUBE_ENV = 'SonarCloud'
         SONAR_ORGANIZATION = 'Dinesh-SMG'
         SONAR_PROJECT_KEY = 'Dinesh-SMG_BuildFlow'
     }
