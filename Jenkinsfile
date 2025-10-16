@@ -7,6 +7,12 @@ pipeline {
     }
 
     stages {
+         stage('Clean Workspace') {
+            steps {
+                echo 'Cleaning workspace before starting build...'
+                cleanWs()
+            }
+        }
 
         stage('Prepare Tools') {
             steps {
