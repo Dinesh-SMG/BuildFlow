@@ -2,12 +2,12 @@
 enable_testing()
 
 # Unit test executable
-add_executable(unit_tests
+add_executable(unit_Test
     Test/test_main.c
 )
 
 # Include Unity headers (adjust path if necessary)
-target_include_directories(unit_tests PRIVATE tests)
+target_include_directories(unit_Test PRIVATE Test)
 
 # Register the test
-add_test(NAME UnitTests COMMAND unit_tests)
+add_test(NAME UnitTests COMMAND unit_Test)
