@@ -95,7 +95,7 @@ pipeline {
                 echo 'Running unit tests...'
                 sh '''
                     if [ -d build ]; then
-                        cd /home/ec2-user/workspace/Firmware-Build/build
+                        cd /home/ec2-user/workspace/Firmware-Build/build/Testing/Temporary
                         # Run all registered CTest tests
                           ctest --output-on-failure
                     else
