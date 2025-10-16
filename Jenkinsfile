@@ -8,13 +8,6 @@ pipeline {
 
     stages {
 
-        stage('Clean Workspace') {
-            steps {
-                echo 'Cleaning workspace before starting build...'
-                cleanWs()   // Jenkins built-in function to delete all files in the workspace
-            }
-        }
-
         stage('Prepare Tools') {
             steps {
                 echo 'Installing required tools...'
@@ -23,18 +16,21 @@ pipeline {
                     if ! command -v pip3 &>/dev/null; then
                         sudo yum install -y python3 python3-pip || true
                     fi
+
                     # Install cmakelint
                     pip3 install --quiet cmakelint
+
                     # Install dos2unix
                     if ! command -v dos2unix &>/dev/null; then
                         sudo yum install -y dos2unix || true
                     fi
+
                     # Install cmake
                     if ! command -v cmake &>/dev/null; then
                         sudo yum install -y epel-release || true
                         sudo yum install -y cmake || true
                     fi
-                    
+
                     # Install GCC/G++ compilers for C/C++ build
                     if ! command -v gcc &>/dev/null; then
                         sudo yum install -y gcc gcc-c++ || true
@@ -67,7 +63,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo 'Building build.sh...'
+                echo 'Running build.sh...'
                 sh '''
                     if [ -f build.sh ]; then
                         dos2unix build.sh
