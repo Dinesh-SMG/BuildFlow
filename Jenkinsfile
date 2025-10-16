@@ -134,7 +134,7 @@ pipeline {
             echo 'Pipeline finished.'
         }
         success {
-            echo 'Build and lint completed successfully!'
+            echo 'Clean, Lint, Build, Unit Test, SonarQube Analysis completed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs.'
