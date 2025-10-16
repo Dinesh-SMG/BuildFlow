@@ -4,10 +4,11 @@ pipeline {
     environment {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
-        // NOTE: Ensure these environment variables are defined in Jenkins global configuration or credentials
-        // SONARQUBE_ENV = 'MySonarServer' 
-        // SONAR_ORGANIZATION = 'my-org'
-        // SONAR_PROJECT_KEY = 'my-project-key'
+        
+        // --- FIX: Defined SonarQube variables to prevent MissingPropertyException ---
+        SONARQUBE_ENV = 'SonarCloud' // Name of your SonarQube Server configuration in Jenkins
+        SONAR_ORGANIZATION = 'your_sonar_organization' // Replace with your organization ID
+        SONAR_PROJECT_KEY = 'your_project_key' // Replace with your project key
     }
 
     stages {
@@ -86,7 +87,7 @@ pipeline {
                     if [ -f build.sh ]; then
                         dos2unix build.sh
                         chmod +x build.sh
-                        # Assuming build.sh performs: mkdir build, cd build, cmake .., make
+                        # This command must create the 'build' directory and execute cmake/make.
                         bash build.sh
                     else
                         echo "build.sh not found!"
@@ -96,12 +97,10 @@ pipeline {
             }
         }
 
-        // --- NEW TEST STAGE ---
         stage('Test') {
             steps {
                 echo 'Running unit tests using CTest...'
-                // IMPORTANT: CTest must be run from the directory where CMake was executed, 
-                // which is conventionally a subdirectory named 'build'.
+                // CTest must be run from the directory where CMake was executed.
                 sh '''
                     if [ -d build ]; then
                         echo "Executing CTest from the 'build' directory..."
@@ -113,17 +112,7 @@ pipeline {
                     fi
                 '''
             }
-            // Optional: If your CTest is configured to generate JUnit XML reports, 
-            // you can uncomment the post step below to publish the results.
-            /*
-            post {
-                always {
-                    junit 'build/TestResults.xml'
-                }
-            }
-            */
         }
-        // --- END NEW TEST STAGE ---
 
         stage('SonarQube Analysis') {
             steps {
@@ -148,7 +137,6 @@ pipeline {
             echo 'Pipeline finished.'
         }
         success {
-            // Updated success message to reflect the new stage
             echo 'Clean, Lint, Build, Test, and SonarQube Analysis completed successfully!'
         }
         failure {
