@@ -4,6 +4,10 @@ pipeline {
     environment {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
+        // NOTE: Ensure these environment variables are defined in Jenkins global configuration or credentials
+        // SONARQUBE_ENV = 'MySonarServer' 
+        // SONAR_ORGANIZATION = 'my-org'
+        // SONAR_PROJECT_KEY = 'my-project-key'
     }
 
     stages {
@@ -39,7 +43,7 @@ pipeline {
                         sudo yum install -y dos2unix || true
                     fi
 
-                    # Install cmake
+                    # Install cmake (which includes ctest)
                     if ! command -v cmake &>/dev/null; then
                         sudo yum install -y epel-release || true
                         sudo yum install -y cmake || true
@@ -82,6 +86,7 @@ pipeline {
                     if [ -f build.sh ]; then
                         dos2unix build.sh
                         chmod +x build.sh
+                        # Assuming build.sh performs: mkdir build, cd build, cmake .., make
                         bash build.sh
                     else
                         echo "build.sh not found!"
@@ -90,22 +95,37 @@ pipeline {
                 '''
             }
         }
-        stage('Unit Tests') {
+
+        // --- NEW TEST STAGE ---
+        stage('Test') {
             steps {
-                echo 'Running unit tests...'
+                echo 'Running unit tests using CTest...'
+                // IMPORTANT: CTest must be run from the directory where CMake was executed, 
+                // which is conventionally a subdirectory named 'build'.
                 sh '''
                     if [ -d build ]; then
-                        cd /home/ec2-user/workspace/Firmware-Build/build/Testing/Temporary
-                        # Run all registered CTest tests
-                          ctest --output-on-failure
+                        echo "Executing CTest from the 'build' directory..."
+                        cd build
+                        ctest --output-on-failure
                     else
-                        echo "Build directory not found!"
+                        echo "Build directory not found. Cannot run tests. Did build.sh fail?"
                         exit 1
                     fi
                 '''
             }
+            // Optional: If your CTest is configured to generate JUnit XML reports, 
+            // you can uncomment the post step below to publish the results.
+            /*
+            post {
+                always {
+                    junit 'build/TestResults.xml'
+                }
+            }
+            */
         }
-         stage('SonarQube Analysis') {
+        // --- END NEW TEST STAGE ---
+
+        stage('SonarQube Analysis') {
             steps {
                 echo 'Running SonarQube (SonarCloud) analysis...'
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
@@ -128,7 +148,8 @@ pipeline {
             echo 'Pipeline finished.'
         }
         success {
-            echo 'Clean,Lint,Build,UnitTest and SonarQube Analysis completed successfully!'
+            // Updated success message to reflect the new stage
+            echo 'Clean, Lint, Build, Test, and SonarQube Analysis completed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs.'
