@@ -97,7 +97,7 @@ pipeline {
             echo 'Pipeline finished.'
         }
         success {
-            echo 'Build and lint completed successfully!'
+            echo 'Clean,Build and lint completed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs.'
