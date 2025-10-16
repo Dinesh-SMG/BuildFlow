@@ -95,9 +95,9 @@ pipeline {
                 echo 'Running unit tests...'
                 sh '''
                     if [ -d build ]; then
-                        cd build
+                        cd /home/ec2-user/workspace/Firmware-Build/build
                         # Run all registered CTest tests
-                        # ctest --output-on-failure
+                          ctest --output-on-failure
                     else
                         echo "Build directory not found!"
                         exit 1
