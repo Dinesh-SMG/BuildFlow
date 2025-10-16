@@ -32,6 +32,13 @@ pipeline {
                 '''
             }
         }
+        stage('Checkout') {
+            steps {
+                echo "Cloning repository ${env.GIT_REPO} on branch ${env.BRANCH}..."
+                // Using the git step to explicitly clone the repository
+                git url: env.GIT_REPO, branch: env.BRANCH
+            }
+        }
         stage('Lint') {
             steps {
                 echo 'Running lint checks on main.c...'
@@ -66,6 +73,12 @@ pipeline {
                         exit 1
                     fi
                 '''
+            }
+        }
+        stage('Clean') {
+            steps {
+                echo 'Cleaning up build artifacts...'
+                sh 'rm -rf build lint_report.txt'
             }
         }
     }
