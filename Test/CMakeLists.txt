@@ -11,4 +11,4 @@ add_executable(unit_Test Test/test_main.c)
 target_include_directories(unit_Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Test)
 
 # Register the test with full path
-add_test(NAME UnitTests COMMAND $<TARGET_FILE:unit_Test>)
+add_test(NAME unit_Test COMMAND $<TARGET_FILE:unit_Test>)
