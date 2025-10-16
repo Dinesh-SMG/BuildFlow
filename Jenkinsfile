@@ -90,6 +90,21 @@ pipeline {
                 '''
             }
         }
+        stage('Unit Tests') {
+            steps {
+                echo 'Running unit tests...'
+                sh '''
+                    if [ -d build ]; then
+                        cd build
+                        # Run all registered CTest tests
+                        ctest --output-on-failure
+                    else
+                        echo "Build directory not found!"
+                        exit 1
+                    fi
+                '''
+            }
+        }
     }
 
     post {
