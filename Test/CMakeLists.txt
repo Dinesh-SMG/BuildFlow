@@ -3,7 +3,7 @@ enable_testing()
 
 # Unit test executable
 add_executable(unit_tests
-    tests/test_main.c
+    Test/test_main.c
 )
 
 # Include Unity headers (adjust path if necessary)
