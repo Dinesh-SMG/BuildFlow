@@ -2,9 +2,7 @@
 enable_testing()
 
 # Unit test executable
-add_executable(unit_Test
-    Test/test_main.c
-)
+add_executable(unit_Test Test/test_main.c)
 
 # Include Unity headers (adjust path if necessary)
 target_include_directories(unit_Test PRIVATE Test)
