@@ -5,7 +5,7 @@ pipeline {
         BRANCH = 'main'
         // SonarCloud Configuration
         SONARQUBE_ENV = 'SonarCloud'
-        SONAR_ORGANIZATION = 'Dinesh-SMG'
+        SONAR_ORGANIZATION = 'dinesh-smg'
         SONAR_PROJECT_KEY = 'Dinesh-SMG_BuildFlow'
     }
     stages {
