@@ -1,10 +1,20 @@
 pipeline {
     agent { label 'linuxgit' }
+
     environment {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
     }
+
     stages {
+
+        stage('Clean Workspace') {
+            steps {
+                echo 'Cleaning workspace before starting build...'
+                cleanWs()   // Jenkins built-in function to delete all files in the workspace
+            }
+        }
+
         stage('Prepare Tools') {
             steps {
                 echo 'Installing required tools...'
@@ -32,6 +42,7 @@ pipeline {
                 '''
             }
         }
+
         stage('Lint') {
             steps {
                 echo 'Running lint checks on main.c...'
@@ -53,9 +64,10 @@ pipeline {
                 }
             }
         }
+
         stage('Build') {
             steps {
-                echo 'Running build.sh...'
+                echo 'Building build.sh...'
                 sh '''
                     if [ -f build.sh ]; then
                         dos2unix build.sh
@@ -69,6 +81,7 @@ pipeline {
             }
         }
     }
+
     post {
         always {
             echo 'Pipeline finished.'
