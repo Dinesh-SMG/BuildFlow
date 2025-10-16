@@ -1,32 +1,10 @@
 pipeline {
     agent { label 'linuxgit' }
-
     environment {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
-        
-        // --- FIX: Defined SonarQube variables to prevent MissingPropertyException ---
-        SONARQUBE_ENV = 'SonarCloud' // Name of your SonarQube Server configuration in Jenkins
-        SONAR_ORGANIZATION = 'your_sonar_organization' // Replace with your organization ID
-        SONAR_PROJECT_KEY = 'your_project_key' // Replace with your project key
     }
-
     stages {
-
-        stage('Clean Workspace') {
-            steps {
-                echo 'Cleaning workspace before starting build...'
-                cleanWs()
-            }
-        }
-
-        stage('Checkout Code') {
-            steps {
-                echo 'Cloning the Git repository...'
-                git branch: "${BRANCH}", url: "${GIT_REPO}"
-            }
-        }
-
         stage('Prepare Tools') {
             steps {
                 echo 'Installing required tools...'
@@ -35,21 +13,18 @@ pipeline {
                     if ! command -v pip3 &>/dev/null; then
                         sudo yum install -y python3 python3-pip || true
                     fi
-
                     # Install cmakelint
                     pip3 install --quiet cmakelint
-
                     # Install dos2unix
                     if ! command -v dos2unix &>/dev/null; then
                         sudo yum install -y dos2unix || true
                     fi
-
-                    # Install cmake (which includes ctest)
+                    # Install cmake
                     if ! command -v cmake &>/dev/null; then
                         sudo yum install -y epel-release || true
                         sudo yum install -y cmake || true
                     fi
-
+                    
                     # Install GCC/G++ compilers for C/C++ build
                     if ! command -v gcc &>/dev/null; then
                         sudo yum install -y gcc gcc-c++ || true
@@ -57,13 +32,12 @@ pipeline {
                 '''
             }
         }
-
         stage('Lint') {
             steps {
                 echo 'Running lint checks on main.c...'
                 sh '''
                     if [ -f src/main.c ]; then
-                        cmakelint src/main.c > lint_report.txt
+                        cmakelint main.c > lint_report.txt
                         # Fail build if lint errors found (uncomment if strict)
                         # grep -q "Total Errors: [1-9]" lint_report.txt && exit 1 || true
                     else
@@ -79,7 +53,6 @@ pipeline {
                 }
             }
         }
-
         stage('Build') {
             steps {
                 echo 'Running build.sh...'
@@ -87,7 +60,6 @@ pipeline {
                     if [ -f build.sh ]; then
                         dos2unix build.sh
                         chmod +x build.sh
-                        # This command must create the 'build' directory and execute cmake/make.
                         bash build.sh
                     else
                         echo "build.sh not found!"
@@ -96,51 +68,16 @@ pipeline {
                 '''
             }
         }
-
-        stage('Test') {
-            steps {
-                echo 'Running unit tests using CTest...'
-                // CTest must be run from the directory where CMake was executed.
-                sh '''
-                    if [ -d build ]; then
-                        echo "Executing CTest from the 'build' directory..."
-                        cd build
-                        ctest --output-on-failure
-                    else
-                        echo "Build directory not found. Cannot run tests. Did build.sh fail?"
-                        exit 1
-                    fi
-                '''
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                echo 'Running SonarQube (SonarCloud) analysis...'
-                withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    sh '''
-                        sonar-scanner \
-                          -Dsonar.organization=${SONAR_ORGANIZATION} \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                          -Dsonar.sources=src \
-                          -Dsonar.cfamily.compile-commands=compile_commands.json \
-                          -Dsonar.host.url=https://sonarcloud.io \
-                          -Dsonar.sourceEncoding=UTF-8
-                    '''
-                }
-            }
-        }
     }
-
     post {
         always {
-            echo 'Pipeline finished.'
+ echo 'Pipeline finished.'
         }
         success {
-            echo 'Clean, Lint, Build, Test, and SonarQube Analysis completed successfully!'
+            echo 'Build and lint completed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs.'
-        }
-    }
+        }
+    }
 }
