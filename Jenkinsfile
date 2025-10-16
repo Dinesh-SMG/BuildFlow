@@ -3,9 +3,9 @@ pipeline {
     environment {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
-        // SonarCloud Configuration
-        SONARQUBE_ENV = 'SonarCloud'
-        SONAR_ORGANIZATION = 'dinesh-smg'
+        // SonarCloud Configuration (Updated organization key to lowercase for consistency with logs)
+        SONARQUBE_ENV = 'SonarCloud' 
+        SONAR_ORGANIZATION = 'dinesh-smg' // <-- Updated to lowercase to match successful log key
         SONAR_PROJECT_KEY = 'Dinesh-SMG_BuildFlow'
     }
     stages {
@@ -74,17 +74,22 @@ pipeline {
         }
         stage('Build') {
             steps {
-                echo 'Running build.sh...'
+                echo 'Running CMake build configuration and compilation...'
+                // Clear and create build directory
+                sh 'rm -rf build && mkdir build' 
+                
+                // Configure CMake and explicitly generate compile_commands.json
                 sh '''
-                    if [ -f build.sh ]; then
-                        dos2unix build.sh
-                        chmod +x build.sh
-                        bash build.sh
-                    else
-                        echo "build.sh not found!"
-                        exit 1
-                    fi
+                    cd build
+                    # This flag is CRUCIAL for SonarQube C/C++ analysis
+                    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+                    
+                    # Compile the project
+                    make
                 '''
+                
+                // Verification step
+                sh 'if [ ! -f build/compile_commands.json ]; then echo "ERROR: compile_commands.json was not generated!"; exit 1; fi'
             }
         }
         stage('Unit Tests') {
@@ -112,7 +117,6 @@ pipeline {
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
                         -Dsonar.sources=src \\
                         -Dsonar.cfamily.compile-commands=build/compile_commands.json \\
-                        -Dsonar.host.url=https://sonarcloud.io \\
                         -Dsonar.sourceEncoding=UTF-8
                     '''
                 }
@@ -130,7 +134,7 @@ pipeline {
             echo 'Pipeline finished.'
         }
         success {
-            echo 'Clean WorkSpace, Lint, Build, Unit test, SonarQube Analysis completed successfully!'
+            echo 'Build and lint completed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs.'
