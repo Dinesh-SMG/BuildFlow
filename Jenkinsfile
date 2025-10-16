@@ -71,13 +71,13 @@ pipeline {
     }
     post {
         always {
- echo 'Pipeline finished.'
+            echo 'Pipeline finished.'
         }
         success {
             echo 'Build and lint completed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs.'
-        }
-    }
+        }
+    }
 }
