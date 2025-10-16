@@ -3,6 +3,10 @@ pipeline {
     environment {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
+        // SonarCloud Configuration
+        SONARQUBE_ENV = 'SonarCloud'
+        SONAR_ORGANIZATION = 'Dinesh-SMG'
+        SONAR_PROJECT_KEY = 'Dinesh-SMG_BuildFlow'
     }
     stages {
         stage('Prepare Tools') {
@@ -28,6 +32,14 @@ pipeline {
                     # Install GCC/G++ compilers for C/C++ build
                     if ! command -v gcc &>/dev/null; then
                         sudo yum install -y gcc gcc-c++ || true
+                    fi
+                    # Install CTest (usually part of CMake, but good to ensure)
+                    if ! command -v ctest &>/dev/null; then
+                        sudo yum install -y cmake || true
+                    fi
+                    # Install Sonar-Scanner (requires tool configuration in Jenkins)
+                    if ! command -v sonar-scanner &>/dev/null; then
+                        echo "WARNING: Sonar Scanner command not found. Ensure it's configured in Jenkins Global Tool Configuration."
                     fi
                 '''
             }
@@ -90,6 +102,22 @@ pipeline {
                 '''
             }
         }
+        stage('SonarQube Analysis') {
+            steps {
+                echo 'Running SonarQube (SonarCloud) analysis...'
+                withSonarQubeEnv("${env.SONARQUBE_ENV}") {
+                    sh '''
+                        sonar-scanner \\
+                        -Dsonar.organization=${SONAR_ORGANIZATION} \\
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
+                        -Dsonar.sources=src \\
+                        -Dsonar.cfamily.compile-commands=build/compile_commands.json \\
+                        -Dsonar.host.url=https://sonarcloud.io \\
+                        -Dsonar.sourceEncoding=UTF-8
+                    '''
+                }
+            }
+        }
         stage('Clean') {
             steps {
                 echo 'Cleaning up build artifacts...'
@@ -102,7 +130,7 @@ pipeline {
             echo 'Pipeline finished.'
         }
         success {
-            echo 'Build and lint completed successfully!'
+            echo 'Clean WorkSpace, Lint, Build, Unit test, SonarQube Analysis completed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs.'
