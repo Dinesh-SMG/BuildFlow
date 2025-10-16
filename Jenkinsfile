@@ -7,10 +7,18 @@ pipeline {
     }
 
     stages {
-         stage('Clean Workspace') {
+
+        stage('Clean Workspace') {
             steps {
                 echo 'Cleaning workspace before starting build...'
                 cleanWs()
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                echo 'Cloning the Git repository...'
+                git branch: "${BRANCH}", url: "${GIT_REPO}"
             }
         }
 
@@ -50,7 +58,7 @@ pipeline {
                 echo 'Running lint checks on main.c...'
                 sh '''
                     if [ -f src/main.c ]; then
-                        cmakelint main.c > lint_report.txt
+                        cmakelint src/main.c > lint_report.txt
                         # Fail build if lint errors found (uncomment if strict)
                         # grep -q "Total Errors: [1-9]" lint_report.txt && exit 1 || true
                     else
