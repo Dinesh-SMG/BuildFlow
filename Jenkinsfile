@@ -92,6 +92,37 @@ pipeline {
                 sh 'if [ ! -f build/compile_commands.json ]; then echo "ERROR: compile_commands.json was not generated!"; exit 1; fi'
             }
         }
+        stage('Upload to Artifactory') {
+            steps {
+                withCredentials([string(credentialsId: 'jenkins_jfrog', variable: 'ACCESS_TOKEN')]) {
+                    sh '''
+                        ARTIFACT_PATH="build/myfirmware.bin"
+                        ARTIFACT_NAME=$(basename $ARTIFACT_PATH)
+
+                        if [ ! -f "$ARTIFACT_PATH" ]; then
+                            echo " Artifact file not found at $ARTIFACT_PATH"
+                            exit 1
+                        fi
+
+                        # Deploy to repo root (works reliably)
+                        UPLOAD_URL="http://98.88.72.107:8081/artifactory/CMake/$ARTIFACT_NAME"
+                        echo "Uploading $ARTIFACT_NAME to $UPLOAD_URL ..."
+
+                        HTTP_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+                            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+                            -T "$ARTIFACT_PATH" \
+                            "$UPLOAD_URL")
+
+                        if [ "$HTTP_RESPONSE" -ge 200 ] && [ "$HTTP_RESPONSE" -lt 300 ]; then
+                            echo "Upload successful!"
+                        else
+                            echo "Upload failed with HTTP code $HTTP_RESPONSE"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
         stage('Unit Tests') {
             steps {
                 echo 'Running unit tests...'
