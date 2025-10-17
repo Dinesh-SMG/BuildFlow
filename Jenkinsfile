@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+        agent { label 'linuxgit' }
     environment {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
