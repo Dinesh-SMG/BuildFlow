@@ -44,13 +44,13 @@ pipeline {
                 '''
             }
         }
-        // stage('Checkout') {
-        //     steps {
-        //         echo "Cloning repository ${env.GIT_REPO} on branch ${env.BRANCH}..."
-        //         // Using the git step to explicitly clone the repository
-        //         git url: env.GIT_REPO, branch: env.BRANCH
-        //     }
-        // }
+        stage('Checkout') {
+            steps {
+                echo "Cloning repository ${env.GIT_REPO} on branch ${env.BRANCH}..."
+                // Using the git step to explicitly clone the repository
+                git url: env.GIT_REPO, branch: env.BRANCH
+            }
+        }
         stage('Lint') {
             steps {
                 echo 'Running lint checks on main.c...'
