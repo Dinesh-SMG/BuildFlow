@@ -7,8 +7,7 @@ pipeline {
         SONARQUBE_ENV = 'SonarCloud' 
         SONAR_ORGANIZATION = 'dinesh-smg' // <-- Updated to lowercase to match successful log key
         SONAR_PROJECT_KEY = 'Dinesh-SMG_BuildFlow'
-    }
-        
+    }    
     stages {
         stage('Prepare Tools') {
             steps {
