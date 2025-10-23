@@ -1,5 +1,5 @@
 pipeline {
-        agent { label 'newnode' }
+    agent { label 'newnode' }
     environment {
         GIT_REPO = 'https://github.com/Dinesh-SMG/BuildFlow.git'
         BRANCH = 'main'
@@ -47,8 +47,22 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Cloning repository ${env.GIT_REPO} on branch ${env.BRANCH}..."
-                // Using the git step to explicitly clone the repository
-                git url: env.GIT_REPO, branch: env.BRANCH
+                // Explicit GitSCM checkout with hooks bypass + clean + shallow clone
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${env.BRANCH}"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                        [$class: 'CleanBeforeCheckout'],
+                        [$class: 'CloneOption', noTags: false, shallow: true, depth: 1, timeout: 10],
+                        [$class: 'DisableRemotePoll']
+                    ],
+                    userRemoteConfigs: [[
+                        url: env.GIT_REPO,
+                        // If you need to use credentials, set credentialsId here:
+                        // credentialsId: 'cf6fff73-0de6-4dda-95fb-4f6894be7b76'
+                    ]]
+                ])
             }
         }
         stage('Lint') {
@@ -143,11 +157,11 @@ pipeline {
                 echo 'Running SonarQube (SonarCloud) analysis...'
                 withSonarQubeEnv("${env.SONARQUBE_ENV}") {
                     sh '''
-                        sonar-scanner \\
-                        -Dsonar.organization=${SONAR_ORGANIZATION} \\
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
-                        -Dsonar.sources=src \\
-                        -Dsonar.cfamily.compile-commands=build/compile_commands.json \\
+                        sonar-scanner \
+                        -Dsonar.organization=${SONAR_ORGANIZATION} \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.sources=src \
+                        -Dsonar.cfamily.compile-commands=build/compile_commands.json \
                         -Dsonar.sourceEncoding=UTF-8
                     '''
                 }
