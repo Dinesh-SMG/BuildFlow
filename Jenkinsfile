@@ -119,7 +119,7 @@ pipeline {
                         fi
 
                         # Deploy to repo root (works reliably)
-                        UPLOAD_URL="http://98.88.72.107:8081/artifactory/CMake/$ARTIFACT_NAME"
+                        UPLOAD_URL="http://54.166.138.210:8081/artifactory/CMake/$ARTIFACT_NAME"
                         echo "Uploading $ARTIFACT_NAME to $UPLOAD_URL ..."
 
                         HTTP_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
